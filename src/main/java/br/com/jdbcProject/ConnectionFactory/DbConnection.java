@@ -1,24 +1,26 @@
 package br.com.jdbcProject.ConnectionFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DbConnection {
-
-	private static final String DRIVE = "com.mysql.cj.jdbc.Driver";
-	private static final String URL = "jdbc:mysql://127.0.0.1:3306/jdbcProject";
-	private static final String USER = "gesio";
-	private static final String PASSWORD = "gesio1032";
 
 	private static Connection con = null;
 
 	public static Connection startConnection() {
-
+		
+		Properties prop = loadProperties();
+		
 		try {
-			Class.forName(DRIVE);
+			Class.forName(prop.getProperty("drive"));
 
-			con = DriverManager.getConnection(URL, USER, PASSWORD);
+			con = DriverManager.getConnection(prop.getProperty("url"), prop);
 		} catch (ClassNotFoundException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
@@ -26,7 +28,7 @@ public class DbConnection {
 			System.out.println("Connection Error: " + e.getMessage());
 			e.printStackTrace();
 		}
-
+		
 		return con;
 	}
 
@@ -40,5 +42,25 @@ public class DbConnection {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private static Properties loadProperties() {
+		try {
+			FileInputStream file = new FileInputStream(new File("application.properties"));
+			
+			Properties prop = new Properties();
+			
+			prop.load(file);
+			
+			return prop;
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found. Error: " + e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }
