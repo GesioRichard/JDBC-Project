@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.com.jdbcProject.ConnectionFactory.DbConnection;
 import br.com.jdbcProject.model.dao.DaoMethods;
@@ -45,7 +47,7 @@ public class SellerDao implements DaoMethods<Seller> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 		
@@ -78,7 +80,7 @@ public class SellerDao implements DaoMethods<Seller> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 	}
@@ -98,7 +100,7 @@ public class SellerDao implements DaoMethods<Seller> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 	}
@@ -120,25 +122,19 @@ public class SellerDao implements DaoMethods<Seller> {
 			
 			rs = ps.executeQuery();
 			
-			Seller seller = null;
-			
 			if(rs.next()) {
-				seller = new Seller();
+				Department department = instanceDepartment(rs);
+				Seller seller = instanceSeller(rs, department);
 				
-				seller.setId(rs.getInt("Id"));
-				seller.setName(rs.getString("Name"));
-				seller.setEmail(rs.getString("Email"));
-				seller.setBirthDate(rs.getDate("BirthDate"));
-				seller.setBaseSalary(rs.getDouble("BaseSalary"));
-				seller.setDepartment(new Department(rs.getInt("DepartmentId"), rs.getString("DepartmentName")));
+				return seller;
 			}
 			
-			return seller;
 		} catch (SQLException e) {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
+			db.closeResultSet(rs);
 		}
 		
 		return null;
@@ -153,25 +149,24 @@ public class SellerDao implements DaoMethods<Seller> {
 		
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		List<Seller> sellers;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
 			
 			rs = ps.executeQuery();
 			
-			sellers = new ArrayList<Seller>();
-			Seller seller = null;
+			Map<Integer, Department> departments = new HashMap<Integer, Department>();
+			List<Seller> sellers = new ArrayList<Seller>();
 			
 			while(rs.next()) {
-				seller = new Seller();
+				Department dp = departments.get(rs.getInt("DepartmentId"));
 				
-				seller.setId(rs.getInt("Id"));
-				seller.setName(rs.getString("Name"));
-				seller.setEmail(rs.getString("Email"));
-				seller.setBirthDate(rs.getDate("BirthDate"));
-				seller.setBaseSalary(rs.getDouble("BaseSalary"));
-				seller.setDepartment(new Department(rs.getInt("DepartmentId"), rs.getString("DepartmentName")));
+				if(dp == null) {
+					dp = instanceDepartment(rs);
+					departments.put(rs.getInt("DepartmentId"), dp);
+				}
+				
+				Seller seller = instanceSeller(rs, dp);
 				
 				sellers.add(seller);
 			}
@@ -181,10 +176,78 @@ public class SellerDao implements DaoMethods<Seller> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
+			db.closeResultSet(rs);
 		}
 		return null;
 	}
 	
+	public List<Seller> findByDepartment(Department department){
+		
+		String sql = "SELECT s.*, d.Name "
+				+ "AS DepartmentName "
+				+ "FROM seller s "
+				+ "INNER JOIN department d "
+				+ "ON s.DepartmentId = d.Id "
+				+ "WHERE d.Id = ? ";
+		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			ps = db.startConnection().prepareStatement(sql);
+			
+			ps.setInt(1, department.getId());
+			
+			rs = ps.executeQuery();
+			
+			Map<Integer, Department> departments = new HashMap<Integer, Department>();
+			List<Seller> sellers = new ArrayList<Seller>();
+			
+			while(rs.next()) {
+				
+				Department dp = departments.get(rs.getInt("DepartmentId"));
+				
+				if(dp == null) {
+					dp = instanceDepartment(rs);
+					departments.put(rs.getInt("DepartmentId"), dp);
+				}
+				
+				Seller seller = instanceSeller(rs, dp);
+				
+				sellers.add(seller);
+			}
+			
+			return sellers;
+		} catch (SQLException e) {
+			System.out.println("Error: " + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			db.closeStatement(ps);
+			db.closeResultSet(rs);
+		}
+		
+		
+		return null;
+	}
 	
+	private Department instanceDepartment(ResultSet rs) throws SQLException {
+		Department department = new Department();
+		department.setId(rs.getInt("DepartmentId"));
+		department.setName(rs.getString("DepartmentName"));
+		
+		return department;
+	}
+	
+	private Seller instanceSeller(ResultSet rs, Department d) throws SQLException {
+		Seller seller = new Seller();
+		seller.setId(rs.getInt("Id"));
+		seller.setName(rs.getString("Name"));
+		seller.setEmail(rs.getString("Email"));
+		seller.setBirthDate(rs.getDate("BirthDate"));
+		seller.setBaseSalary(rs.getDouble("BaseSalary"));
+		seller.setDepartment(d);
+		
+		return seller;
+	}
 }

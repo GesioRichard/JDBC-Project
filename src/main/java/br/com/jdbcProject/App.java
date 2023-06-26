@@ -13,9 +13,9 @@ public class App
     public static void main( String[] args )
     {
     	DaoMethods<Department> departmentDao = new DepartmentDao();
-    	DaoMethods<Seller> sellerDao = new SellerDao();
+    	SellerDao sellerDao = new SellerDao();
     	
-    	Department d = departmentDao.findById(3);
+    	Department d = departmentDao.findById(2);
     	List<Department> departments = departmentDao.findAll();
     	
     	Seller seller = sellerDao.findById(3);
@@ -26,7 +26,9 @@ public class App
     	
     	System.out.println(departments);
     	System.out.println(sellers);
-    	//dao.insert(d);
-    	//dao.update(d);
+    	System.out.println(sellerDao.findByDepartment(d));
+    	
+    	departmentDao.update(d);
+    	departmentDao.deleteById(5);
     }
 }

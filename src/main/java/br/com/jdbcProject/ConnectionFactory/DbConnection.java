@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 public class DbConnection {
@@ -39,6 +41,30 @@ public class DbConnection {
 				con.close();
 			} catch (SQLException e) {
 				System.out.println("Close connection error: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void closeStatement(Statement st) {
+		if(st != null) {
+			try {
+				st.close();
+			} catch (SQLException e) {
+				System.out.println("Error: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void closeResultSet(ResultSet rs) {
+		
+		if(rs != null) {
+			
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				System.out.println("Error: " + e.getMessage());
 				e.printStackTrace();
 			}
 		}

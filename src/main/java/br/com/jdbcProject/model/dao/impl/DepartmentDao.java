@@ -22,7 +22,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 		
 		String sql = "INSERT INTO department (Name) values (?)";
 		
-		PreparedStatement ps;
+		PreparedStatement ps = null;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
@@ -35,7 +35,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 	}
@@ -43,7 +43,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 	public void update(Department obj) {
 		String sql = "UPDATE department SET Name = ? WHERE Id = ?";
 		
-		PreparedStatement ps;
+		PreparedStatement ps = null;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
@@ -56,7 +56,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 	}
@@ -64,7 +64,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 	public void deleteById(Integer id) {
 		String sql = "DELETE FROM department WHERE Id = ?";
 		
-		PreparedStatement ps;
+		PreparedStatement ps = null;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
@@ -76,7 +76,7 @@ public class DepartmentDao implements DaoMethods<Department> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
 		}
 		
 	}
@@ -85,13 +85,14 @@ public class DepartmentDao implements DaoMethods<Department> {
 		String sql = "SELECT * FROM department WHERE Id = ?";
 		
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
 			
 			ps.setInt(1, id);
 			
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			
 			Department department = null;
 			
@@ -108,7 +109,8 @@ public class DepartmentDao implements DaoMethods<Department> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
+			db.closeResultSet(rs);
 		}
 		return null;
 	}
@@ -118,14 +120,13 @@ public class DepartmentDao implements DaoMethods<Department> {
 		
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		List<Department> departments;
 		
 		try {
 			ps = db.startConnection().prepareStatement(sql);
 			
 			rs = ps.executeQuery();
 			
-			departments = new ArrayList<Department>();
+			List<Department> departments = new ArrayList<Department>();
 			Department dp = null;
 			
 			while(rs.next()) {
@@ -142,7 +143,8 @@ public class DepartmentDao implements DaoMethods<Department> {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} finally {
-			db.stopConnection();
+			db.closeStatement(ps);
+			db.closeResultSet(rs);
 		}
 		
 		return null;
