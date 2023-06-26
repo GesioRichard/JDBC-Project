@@ -10,7 +10,7 @@ public class SellerDao implements DaoMethods<Seller> {
 	
 	private DbConnection db = null;
 	
-	private SellerDao(){
+	public SellerDao(){
 		db = new DbConnection();
 	}
 

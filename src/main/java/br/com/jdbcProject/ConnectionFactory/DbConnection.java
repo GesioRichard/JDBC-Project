@@ -11,9 +11,9 @@ import java.util.Properties;
 
 public class DbConnection {
 
-	private static Connection con = null;
+	private Connection con = null;
 
-	public static Connection startConnection() {
+	public Connection startConnection() {
 		
 		Properties prop = loadProperties();
 		
@@ -32,7 +32,7 @@ public class DbConnection {
 		return con;
 	}
 
-	public static void stopConnection() {
+	public void stopConnection() {
 		
 		if(con != null) {
 			try {
